@@ -7,9 +7,21 @@ import dagshub
 # 
 # mlflow.set_tracking_uri("https://dagshub.com/bhattpriyang/ci_test.mlflow")
 
-dagshub.init(repo_owner='bhattpriyang', repo_name='ci_cd_test', mlflow=True)
-mlflow.set_experiment("Final_model")
-mlflow.set_tracking_uri("https://dagshub.com/bhattpriyang/ci_cd_test.mlflow")
+# dagshub.init(repo_owner='bhattpriyang', repo_name='ci_cd_test', mlflow=True)
+# mlflow.set_experiment("Final_model")
+# mlflow.set_tracking_uri("https://dagshub.com/bhattpriyang/ci_cd_test.mlflow")
+import os
+dagshub_token = os.getenv("DAGSHUB_TOKEN")
+if not dagshub_token:
+    raise EnvironmentError("DAGSHUB_TOKEN environment variable is not set")
+
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+dagshub_url = "https://dagshub.com"
+repo_owner = "bhattpriyang"
+repo_name='ci_cd_test'
+
 
 # Load the run ID and model name from the saved JSON file
 reports_path = "reports/run_info.json"
