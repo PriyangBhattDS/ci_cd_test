@@ -34,7 +34,7 @@ dagshub_url = "https://dagshub.com"
 repo_owner = "bhattpriyang"
 repo_name='ci_cd_test'
 
-
+mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow') 
  
 def load_data(filepath: str) -> pd.DataFrame:
     try:
