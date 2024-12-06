@@ -39,13 +39,13 @@ reg = mlflow.register_model(model_uri, model_name)
 model_version = reg.version  # Get the registered model version
 
 # Transition the model version to Production
-new_stage = "Production"
+new_stage = "Staging"
 
 client.transition_model_version_stage(
     name=model_name,
     version=model_version,
     stage=new_stage,
-    archive_existing_versions=True
+    archive_existing_versions=False
 )
 
 print(f"Model {model_name} version {model_version} transitioned to {new_stage} stage.")
