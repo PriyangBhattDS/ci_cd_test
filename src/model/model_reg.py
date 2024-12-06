@@ -16,7 +16,7 @@ dagshub_url = "https://dagshub.com"
 repo_owner = "bhattpriyang"
 repo_name = "ci_cd_test"
 mlflow.set_tracking_uri(f"{dagshub_url}/{repo_owner}/{repo_name}.mlflow")
-
+mlflow.set_experiment("Final_model")
 # Load the run ID and model name from the saved JSON file
 reports_path = "reports/run_info.json"
 if not os.path.exists(reports_path):

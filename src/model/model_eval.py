@@ -35,7 +35,7 @@ repo_owner = "bhattpriyang"
 repo_name='ci_cd_test'
 
 mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow') 
- 
+mlflow.set_experiment("Final_model")
 def load_data(filepath: str) -> pd.DataFrame:
     try:
         return pd.read_csv(filepath)
