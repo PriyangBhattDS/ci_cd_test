@@ -15,7 +15,6 @@ class TestModelLoading(unittest.TestCase):
         os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
         os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
 
-       
         dagshub_url = "https://dagshub.com"
         repo_owner = "bhattpriyang"
         repo_name='ci_cd_test'
