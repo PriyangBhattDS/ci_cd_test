@@ -28,7 +28,7 @@ jobs:
           dvc repro
       - name: Run model tests
         env:
-          DAGSHUB_PAT: ${{ secrets.DAGSHUB_TOKEN }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
           python -m unittest tests/model_test.py
 
