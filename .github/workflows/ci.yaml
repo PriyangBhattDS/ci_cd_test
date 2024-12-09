@@ -26,3 +26,9 @@ jobs:
             # Directly run the DVC pipeline without pulling
         run: |    
           dvc repro
+      - name: Run model tests
+        env:
+          DAGSHUB_PAT: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          python -m unittest tests/model_test.py
+
