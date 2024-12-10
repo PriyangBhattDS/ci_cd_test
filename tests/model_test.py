@@ -12,11 +12,17 @@ if not dagshub_token:
 os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
 os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
 
-# Set the tracking URI to your DagsHub MLflow instance
-mlflow.set_tracking_uri("https://dagshub.com/bhattpriyang/mlops_project.mlflow")
+# Set the tracking URI to our DagsHub MLflow instance
+#mlflow.set_tracking_uri("https://dagshub.com/bhattpriyang/mlops_project.mlflow")
+
+# DagsHub repository details
+dagshub_url = "https://dagshub.com"
+repo_owner = "bhattpriyang"
+repo_name = "ci_cd_test"
+mlflow.set_tracking_uri(f"{dagshub_url}/{repo_owner}/{repo_name}.mlflow")
 
 # Specify the model name
-model_name = "Best Model"  # Replace with your registered model name
+model_name = "Best Model"  
 
 class TestModelLoading(unittest.TestCase):
     """Unit test class to verify MLflow model loading from the Staging stage."""
