@@ -1,55 +1,62 @@
-import os
 import unittest
 import mlflow
-import time
-import random
-from mlflow.exceptions import MlflowException
+from mlflow.tracking import MlflowClient
+import os
+
+# Load DagsHub token from environment variables for secure access
+dagshub_token = os.getenv("DAGSHUB_TOKEN")
+if not dagshub_token:
+    raise EnvironmentError("DAGSHUB_TOKEN environment variable is not set")
+
+# Set up environment variables for MLflow
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+# Set the tracking URI to your DagsHub MLflow instance
+mlflow.set_tracking_uri("https://dagshub.com/bhattpriyang/mlops_project.mlflow")
+
+# Specify the model name
+model_name = "Best Model"  # Replace with your registered model name
 
 class TestModelLoading(unittest.TestCase):
+    """Unit test class to verify MLflow model loading from the Staging stage."""
 
-    @classmethod
-    def setUpClass(cls):
-        # Set up DagsHub credentials for MLflow tracking
-        dagshub_token = os.getenv("DAGSHUB_TOKEN")
-        if not dagshub_token:
-            raise EnvironmentError("DAGSHUB_TOKEN environment variable is not set")
+    def test_model_in_staging(self):
+        """Test if the model exists in the 'Staging' stage."""
+        client = MlflowClient()
 
+        # Get the latest version of the model in the Staging stage
+        versions = client.get_latest_versions(model_name, stages=["Staging"])
 
-        os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
-        os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+        # Assert that there is at least one version in the Staging stage
+        self.assertGreater(len(versions), 0, "No model found in the 'Staging' stage.")
 
-        dagshub_url = "https://dagshub.com"
-        repo_owner = "bhattpriyang"
-        repo_name = 'ci_cd_test'
-        mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
-        
-        # Load the new model with retry logic
-        cls.new_model_name = "Best Model"
-        cls.new_model_version = cls.get_latest_model_version(cls.new_model_name)
-        cls.new_model_uri = f'models:/{cls.new_model_name}/{cls.new_model_version}'
-        
-        retries = 5  # Number of retries
-        for attempt in range(retries):
-            try:
-                cls.new_model = mlflow.pyfunc.load_model(cls.new_model_uri)
-                break  # Exit loop if successful
-            except MlflowException as e:
-                if attempt < retries - 1:
-                    # Exponential backoff with random jitter
-                    backoff_time = random.uniform(2 ** attempt, 2 ** (attempt + 1))
-                    print(f"Error downloading model (attempt {attempt + 1}/{retries}). Retrying in {backoff_time:.2f} seconds.")
-                    time.sleep(backoff_time)  # Sleep before retrying
-                else:
-                    raise RuntimeError(f"Failed to load model from {cls.new_model_uri}. Error: {e}")
-                    
-    @staticmethod
-    def get_latest_model_version(model_name, stage="Staging"):
-        client = mlflow.MlflowClient()
-        latest_versions = client.get_latest_versions(model_name, stages=[stage])
-        return latest_versions[0].version if latest_versions else None
+    def test_model_loading(self):
+        """Test if the model can be loaded properly from the Staging stage."""
+        client = MlflowClient()
 
-    def test_model_loaded_properly(self):
-        self.assertIsNotNone(self.new_model)
+        # Get the latest version of the model in the Staging stage
+        versions = client.get_latest_versions(model_name, stages=["Staging"])
+
+        if not versions:
+            self.fail("No model found in the 'Staging' stage, skipping model loading test.")
+
+        # Get details of the latest version
+        latest_version = versions[0].version
+        run_id = versions[0].run_id  # Fetch the run ID from the latest version
+
+        # Construct the logged_model string
+        logged_model = f"runs:/{run_id}/{model_name}"
+
+        try:
+            # Try loading the model
+            loaded_model = mlflow.pyfunc.load_model(logged_model)
+        except Exception as e:
+            self.fail(f"Failed to load the model: {e}")
+
+        # Assert that the loaded model is not None
+        self.assertIsNotNone(loaded_model, "The loaded model is None.")
+        print(f"Model successfully loaded from {logged_model}.")
 
 if __name__ == "__main__":
     unittest.main()
