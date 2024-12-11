@@ -1,7 +1,9 @@
 import unittest
 import mlflow
 from mlflow.tracking import MlflowClient
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import os
+import pandas as pd
 
 # Load DagsHub token from environment variables for secure access
 # The DagsHub token is required for authentication when interacting with the DagsHub MLflow server
@@ -72,6 +74,46 @@ class TestModelLoading(unittest.TestCase):
         # Assert that the model is not None, meaning it was loaded successfully
         self.assertIsNotNone(loaded_model, "The loaded model is None.")
         print(f"Model successfully loaded from {logged_model}.")
+
+    def test_model_performance(self):
+        """Test the performance of the model on test data."""
+        client = MlflowClient()
+        versions = client.get_latest_versions(model_name, stages=["Staging"])
+
+        if not versions:
+            self.fail("No model found in the 'Staging' stage, skipping performance test.")
+
+        latest_version = versions[0].run_id
+        logged_model = f"runs:/{latest_version}/{model_name}"
+        loaded_model = mlflow.pyfunc.load_model(logged_model)
+
+        # Load test data (replace 'test_data.csv' with the path to your test dataset)
+        test_data_path = "./data/processed/test_processed.csv"
+        if not os.path.exists(test_data_path):
+            self.fail(f"Test data not found at {test_data_path}")
+        
+        test_data = pd.read_csv(test_data_path)
+        X_test = test_data.drop(columns=["Potability"])
+        y_test = test_data["Potability"]
+
+        # Make predictions and calculate metrics
+        predictions = loaded_model.predict(X_test)
+
+        accuracy = accuracy_score(y_test, predictions)
+        precision = precision_score(y_test, predictions, average="binary")
+        recall = recall_score(y_test, predictions, average="binary")
+        f1 = f1_score(y_test, predictions, average="binary")
+
+        print(f"Accuracy: {accuracy}")
+        print(f"Precision: {precision}")
+        print(f"Recall: {recall}")
+        print(f"F1 Score: {f1}")
+
+        # Assert performance metrics meet thresholds
+        self.assertGreaterEqual(accuracy, 0.6, "Accuracy is below threshold.")
+        self.assertGreaterEqual(precision, 0.6, "Precision is below threshold.")
+        self.assertGreaterEqual(recall, 0.6, "Recall is below threshold.")
+        self.assertGreaterEqual(f1, 0.6, "F1 Score is below threshold.")
 
 # This ensures the tests run when executing the script directly
 if __name__ == "__main__":
